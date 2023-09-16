@@ -1,0 +1,94 @@
+{% extends 'store/main.html' %}
+{% load static %}
+{% block content %}
+	<div class="row">
+		{% for product in products %}
+		<div class="col-lg-4">
+			<img class="thumbnail" src="{{product.imageURL}}">
+			<div class="box-element product">
+				<h6><strong></strong></h6>
+				<hr>
+
+				<button data-product="{{product.id}}" data-action="add" class="btn btn-outline-secondary add-btn update-cart">Add to Cart</button>
+				
+				<a class="btn btn-outline-success" href="#">View</a>
+				<h4 style="display: inline-block; "><strong></strong></h4>
+
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+	<script  type="text/javascript" >
+		var updateBtns = document.getElementsByClassName('update-cart')
+		console.log(updateBtns)
+		for (i = 0; i < updateBtns.length; i++){
+			updateBtns[i].addEventListener('click', function(){
+				var productId = this.dataset.product
+				var action = this.dataset.action
+				console.log('productId:', productId, 'Action:', action)
+				console.log('user:', user)
+
+				if (user == 'AnonymousUser'){
+					addCookieItem(productId, action)
+				}else{
+					updateUserOrder(productId, action)
+				}
+			})
+		}
+
+
+    function updateUserOrder(productId, action){
+	console.log('User is authenticated, sending data...')
+
+		var url = '/update_item/'
+
+		fetch(url, {
+			method:'POST',
+			headers:{
+				'Content-Type':'application/json',
+				'X-CSRFToken':csrftoken,
+			}, 
+			body:JSON.stringify({'productId':productId, 'action':action})
+		})
+		.then((response) => {
+		   return response.json();
+		})
+		.then((data) => {
+		    location.reload()
+		});
+
+	
+}
+
+function addCookieItem(productId, action){
+	
+
+	if (action == 'add'){
+		if (cart[productId] == undefined){
+		cart[productId] = {'quantity':1}
+
+		}else{
+			cart[productId]['quantity'] += 1
+		}
+	}
+
+	if (action == 'remove'){
+		cart[productId]['quantity'] -= 1
+
+		if (cart[productId]['quantity'] <= 0){
+			console.log('Item should be deleted')
+			delete cart[productId];
+		}
+	}
+	console.log('CART:', cart)
+	document.cookie ='cart=' + JSON.stringify(cart) + ";domain=;path=/"
+	
+	location.reload()
+}
+	</script>
+{% endblock content %}
+
+
+<!-- curl https://bootstrap.pypa.io/get-pip.py | python
+python3.8 -m venv --without-pip virtual
+pip install -r requirements.txt -->
